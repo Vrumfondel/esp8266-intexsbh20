@@ -30,7 +30,10 @@
 
 
 // set ADC to read from input pin A0
+#ifdef ESP8266
 ADC_MODE(ADC_TOUT)
+#endif
+
 
 /**
  * @param refResistance resistance between NTC and GND [Ohm]

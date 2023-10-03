@@ -58,6 +58,10 @@
 
 #include <stdexcept>
 
+#ifdef ESP32
+#include <esp_task_wdt.h>
+#endif
+
 ConfigurationFile config;
 NTCThermometer thermometer;
 OTAUpdate otaUpdate;
@@ -83,7 +87,9 @@ void setup()
 
   // print versions
   Serial.printf_P(PSTR("%s MQTT WiFi Controller %s\n"), pureSpaIO.getModelName(), CONFIG::WIFI_VERSION);
+  #ifdef ESP8266
   Serial.printf_P(PSTR("build with Arduino Core for ESP8266 %s\n"), ESP.getCoreVersion().c_str());
+  #endif
   Serial.printf_P(PSTR("based on Espressif NONOS SDK %s\n"), ESP.getSdkVersion());
 
   // try to load config file
@@ -148,7 +154,13 @@ void setup()
       thermometer.setup(22000, 3.33f, 320.f/100.f); // measured: 21990, 3.327f, 319.f/99.6f
 
       // enable hardware watchdog (8.3 s) by disabling software watchdog
+      #ifdef ESP8266
       ESP.wdtDisable();
+      #elif defined ESP32
+      esp_task_wdt_deinit();
+      #else 
+      #error Unknown HW;
+      #endif
 
       ready = true;
     }
@@ -161,7 +173,11 @@ void setup()
   // stop CPU if init failed
   if (!ready)
   {
+    #ifdef ESP8266
     ESP.deepSleep(ESP.deepSleepMax(), RF_DISABLED);
+    #elif defined ESP32
+    esp_sleep_enable_timer_wakeup(1000000*9999999999);
+    #endif
   }
 }
 
@@ -171,7 +187,13 @@ void setup()
 void loop()
 {
   // keep hardware watchdog alive
+  #ifdef ESP8266
   ESP.wdtFeed();
+  #elif defined ESP32
+  esp_task_wdt_reset();
+  #else
+  #error Unknown HW;
+  #endif
 
   wl_status_t wifiStatus = WiFi.status(); //  WL_IDLE_STATUS 0, WL_NO_SSID_AVAIL 1, WL_SCAN_COMPLETED 2, WL_CONNECTED 3, WL_CONNECT_FAILED 4, WL_CONNECTION_LOST 5, WL_DISCONNECTED 6, WL_NO_SHIELD 255
   unsigned long now = millis();

@@ -28,8 +28,16 @@
 #define COMMON_H
 
 #include <climits>
+
+#ifdef ESP8266
 #include <c_types.h>
 #include <../d1_mini/pins_arduino.h>
+#elif defined ESP32
+#include <ESP32types.h>
+#include <../d1_mini32/pins_arduino.h>
+#endif
+
+
 
 /*****************************************************************************
 
@@ -38,7 +46,7 @@
  *****************************************************************************/
 
 // select Intex PureSpa model by commenting in the desired variant
-//#define MODEL_SB_H20
+#define MODEL_SB_H20
 //#define MODEL_SJB_HS
 
 // if changing the water temperature setpoint does not work reliably, commenting
@@ -46,13 +54,13 @@
 // disconnect to the MQTT server
 //#define FORCE_WIFI_SLEEP
 
-//#define SERIAL_DEBUG
+#define SERIAL_DEBUG
 
 /*****************************************************************************/
 
 namespace CONFIG
 {
-  const char WIFI_VERSION[] = "1.0.8.1"; // 22.08.2023
+  const char WIFI_VERSION[] = "1.1.0.0"; // 22.08.2023
 
   // WiFi parameters
   const unsigned long WIFI_MAX_DISCONNECT_DURATION = 900000; // [ms] 5 min until reboot
@@ -94,12 +102,12 @@ namespace MQTT_TOPIC
   const char POWER[]        = "pool/power";
   const char WATER_ACT[]    = "pool/water/tempAct";
   const char WATER_SET[]    = "pool/water/tempSet";
-  const char VERSION[]      = "wifi/version";
-  const char IP[]           = "wifi/ip";
-  const char RSSI[]         = "wifi/rssi";
-  const char WIFI_TEMP[]    = "wifi/temp";
-  const char STATE[]        = "wifi/state";
-  const char OTA[]          = "wifi/update";
+  const char VERSION[]      = "pool/wifi/version";
+  const char IP[]           = "pool/wifi/ip";
+  const char RSSI[]         = "pool/wifi/rssi";
+  const char WIFI_TEMP[]    = "pool/wifi/temp";
+  const char STATE[]        = "pool/wifi/state";
+  const char OTA[]          = "pool/wifi/update";
 
   // subscribe
   const char CMD_BUBBLE[]       = "pool/command/bubble";
@@ -109,7 +117,7 @@ namespace MQTT_TOPIC
   const char CMD_JET[]          = "pool/command/jet"; // SJB-HS only
   const char CMD_POWER[]        = "pool/command/power";
   const char CMD_WATER[]        = "pool/command/water/tempSet";
-  const char CMD_OTA[]          = "wifi/command/update";
+  const char CMD_OTA[]          = "pool/wifi/command/update";
 }
 
 // Languages
@@ -118,6 +126,7 @@ enum class LANG
   CODE = 0, EN = 1, DE = 2
 };
 
+#ifdef ESP8266
 // ESP8266 pins
 namespace PIN
 {
@@ -125,6 +134,17 @@ namespace PIN
   const uint8 DATA  = D6;
   const uint8 LATCH = D7;
 }
+#elif defined ESP32
+// ESP32 pins
+namespace PIN
+{
+  const uint8 CLOCK = 18;
+  const uint8 DATA  = 19;
+  const uint8 LATCH = 23;
+}
+#else
+#error unkown HW;
+#endif
 
 // serial debugging
 #ifdef SERIAL_DEBUG

@@ -27,7 +27,11 @@
 #ifndef MQTT_PUBLISHER_H
 #define MQTT_PUBLISHER_H
 
+#ifdef ESP8266
 #include <c_types.h>
+#elif defined ESP32
+#include <ESP32types.h>
+#endif
 
 class MQTTClient;
 class PureSpaIO;

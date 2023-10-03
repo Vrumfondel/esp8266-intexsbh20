@@ -26,7 +26,12 @@
 
 #include "OTAUpdate.h"
 
+#ifdef ESP8266
 #include <ESP8266httpUpdate.h>
+#elif defined ESP32
+#include <ESP32httpUpdate.h>
+#endif
+
 #include "MQTTClient.h"
 #include "common.h"
 
@@ -39,7 +44,13 @@ bool OTAUpdate::start(const char* updateURL, MQTTClient& mqttClient)
 
   // try to perform OTA update
   WiFiClient client;
+  #ifdef ESP8266
   t_httpUpdate_return ret = ESPhttpUpdate.update(client, updateURL, CONFIG::WIFI_VERSION);
+  #elif defined ESP32
+  t_httpUpdate_return ret = ESPhttpUpdate.update(updateURL, CONFIG::WIFI_VERSION);
+  #else
+  #error unkown HW;
+  #endif
   const unsigned int BUFFER_SIZE = 128;
   char buf[BUFFER_SIZE];
   switch (ret)

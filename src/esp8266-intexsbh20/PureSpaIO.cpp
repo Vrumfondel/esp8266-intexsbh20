@@ -28,8 +28,13 @@
 
 #include "PureSpaIO.h"
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
-
+#elif defined ESP32
+#include <Arduino.h>
+#include <esp_wifi.h>
+#include <esp_task_wdt.h>
+#endif 
 
 #if defined MODEL_SB_H20
 
@@ -495,7 +500,14 @@ void PureSpaIO::setDesiredWaterTempCelsius(int temp)
         // get actual temperature setpoint (will take 2-3 blink durations, especially inital) but skip when change has failed
         int readTries = 4*BLINK::PERIOD/sleep;
         int newSetTemp = getActualSetpoint? UNDEF::INT : setTemp;
+        #ifdef ESP8266
         ESP.wdtFeed();
+        #elif defined ESP32
+        esp_task_wdt_reset();
+        #else
+        #error unknown HW 
+        #endif
+
         if (getActualSetpoint)
         {
           // always wait after change, especially to catch double trigger
@@ -617,7 +629,9 @@ bool PureSpaIO::pressButton(volatile unsigned int& buttonPressCount)
 {
   waitBuzzerOff();
   unsigned int tries = BUTTON::ACK_TIMEOUT/BUTTON::ACK_CHECK_PERIOD;
+  #ifdef ESP8266
   WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
+  #endif
   buttonPressCount = BUTTON::PRESS_COUNT;
   while (buttonPressCount && tries)
   {
@@ -625,7 +639,10 @@ bool PureSpaIO::pressButton(volatile unsigned int& buttonPressCount)
     tries--;
   }
   bool success = state.buzzer;
+
+  #ifdef ESP8266
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
+  #endif
 
   return success;
 }
@@ -717,8 +734,10 @@ bool PureSpaIO::changeWaterTemp(int up)
     //DEBUG_MSG("\nP ");
     waitBuzzerOff();
 
-#ifndef FORCE_WIFI_SLEEP
+#ifdef ESP8266
+#ifndef FORCE_WIFI_SLEEP 
     WiFi.setSleepMode(WIFI_LIGHT_SLEEP);
+#endif
 #endif
 
     // perform button action
@@ -753,11 +772,11 @@ bool PureSpaIO::changeWaterTemp(int up)
     }
 
     success = state.buzzer;
-
+#ifdef ESP8266
 #ifndef FORCE_WIFI_SLEEP
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
 #endif
-
+#endif
     if (!success)
     {
       DEBUG_MSG("\ncWT fail");
@@ -1117,7 +1136,13 @@ IRAM_ATTR inline void PureSpaIO::decodeDisplay()
   // else not all digits set yet
 }
 
+#ifdef ESP8266
 ICACHE_RAM_ATTR inline void PureSpaIO::decodeLED()
+#elif defined ESP32
+IRAM_ATTR inline void PureSpaIO::decodeLED()
+#elif
+#error unknown HW type
+#endif
 {
   if (isrState.frameValue == isrState.latestLedStatus)
   {
@@ -1224,6 +1249,7 @@ IRAM_ATTR inline void PureSpaIO::decodeButton()
   {
     // delay around 5 µs relative to rising edge of latch signal before pulsing
     // pulse should be around 2 µs and MUST be completed BEFORE next falling edge of clock
+#ifdef ESP8266
 #if F_CPU == 160000000L
     delayMicroseconds(1);
     pinMode(PIN::DATA, OUTPUT);
@@ -1232,6 +1258,19 @@ IRAM_ATTR inline void PureSpaIO::decodeButton()
 #else
     #error 160 MHz CPU frequency required! Pulse timing not possible at 80 MHz, because the code above takes too long to reach this point.
     // at least using Arduino methods
+#endif
+
+#elif defined ESP32
+#if F_CPU == 240000000L
+    delayMicroseconds(1);
+    pinMode(PIN::DATA, OUTPUT);
+    delayMicroseconds(3);
+    pinMode(PIN::DATA, INPUT);
+#else
+    #error 240 MHz CPU frequency required! Pulse timing not possible at 80 MHz, because the code above takes too long to reach this point.
+    // at least using Arduino methods
+#endif
+
 #endif
     isrState.reply = false;
   }

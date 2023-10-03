@@ -175,7 +175,7 @@ void MQTTPublisher::loop()
       publish(MQTT_TOPIC::RSSI, WiFi.RSSI());
 
 #ifdef SERIAL_DEBUG
-      publish("wifi/heap", ESP.getFreeHeap());
+      publish("pool/wifi/heap", ESP.getFreeHeap());
 #endif
     }
   }

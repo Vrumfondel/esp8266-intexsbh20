@@ -30,7 +30,15 @@
 #include <functional>
 #include <map>
 
+#ifdef ESP8266
 #include <ESP8266WiFi.h>
+#elif defined ESP32
+#include <Wifi.h>
+#include <ESP32types.h>
+#endif
+
+
+
 #include <PubSubClient.h>
 
 
