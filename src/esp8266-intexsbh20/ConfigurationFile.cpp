@@ -27,8 +27,8 @@
 #include "ConfigurationFile.h"
 
 #include <LittleFS.h>
-#include <stdexcept>
 
+#include <stdexcept>
 
 /**
  * load JSON config file into memory
@@ -45,7 +45,9 @@ bool ConfigurationFile::load(const char* fileName)
     try
     {
       // open wifiConfig file
-      File configFile = LittleFS.open(fileName, "r");
+
+   File configFile = LittleFS.open(fileName, "r");
+
       if (!configFile)
       {
         snprintf_P(exceptionMessage, EXCEPTION_MESSAGE_SIZE, PSTR("config file '%s' not found"), fileName);

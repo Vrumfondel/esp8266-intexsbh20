@@ -33,8 +33,8 @@
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
 #elif defined ESP32
-#include <Wifi.h>
-#include <ESP32types.h>
+#include <WiFi.h>
+#include "ESP32types.h"
 #endif
 
 

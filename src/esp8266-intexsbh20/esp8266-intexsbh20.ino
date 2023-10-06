@@ -55,7 +55,7 @@
 #include "NTCThermometer.h"
 #include "OTAUpdate.h"
 #include "PureSpaIO.h"
-
+#include "LittleFS.h"
 #include <stdexcept>
 
 #ifdef ESP32
@@ -83,7 +83,7 @@ bool initialized = false;
  */
 void setup()
 {
-  Serial.begin(74880); // 74880 Baud is the default data rate of the ESP8266 bootloader
+  Serial.begin(115200); // 74880 Baud is the default data rate of the ESP8266 bootloader
 
   // print versions
   Serial.printf_P(PSTR("%s MQTT WiFi Controller %s\n"), pureSpaIO.getModelName(), CONFIG::WIFI_VERSION);

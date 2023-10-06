@@ -30,7 +30,7 @@
 #ifdef ESP8266
 #include <c_types.h>
 #elif defined ESP32
-#include <ESP32types.h>
+#include "ESP32types.h"
 #endif
 
 class MQTTClient;
